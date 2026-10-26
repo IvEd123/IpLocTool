@@ -25,10 +25,10 @@ public class WidgetSmokeTest {
     @Before public void clearState() { CheckController.state(context).edit().clear().commit(); }
 
     @Test public void allLayoutsInflateAndKeepRefreshButtonInsideBounds() {
-        CheckController.state(context).edit().putString("ip", "2001:4860:4860::8888")
+        CheckController.state(context).edit().putString("ip", "2001:0db8:85a3:0000:0000:8a2e:0370:7334")
                 .putString("place", "🇷🇺 Санкт-Петербург, Россия").putString("provider", "Test provider").commit();
         instrumentation.runOnMainSync(() -> {
-            int[][] dimensions = {{WidgetSize.COMPACT, 160, 60}, {WidgetSize.MEDIUM, 200, 150}, {WidgetSize.LARGE, 300, 240}};
+            int[][] dimensions = {{WidgetSize.COMPACT, 110, 60}, {WidgetSize.MEDIUM, 170, 130}, {WidgetSize.LARGE, 250, 180}};
             float density = context.getResources().getDisplayMetrics().density;
             for (int[] item : dimensions) {
                 View view = LocationWidget.createViews(context, item[0]).apply(context, new FrameLayout(context));
@@ -40,7 +40,10 @@ public class WidgetSmokeTest {
                 assertTrue(button.hasOnClickListeners());
                 assertTrue(button.getWidth() > 0 && button.getHeight() > 0);
                 assertTrue(button.getRight() <= width && button.getBottom() <= height);
-                assertEquals("2001:4860:4860::8888", ((TextView) view.findViewById(R.id.widget_ip)).getText().toString());
+                View info = view.findViewById(R.id.widget_info);
+                assertTrue("Widget status must fit at the minimum supported size",
+                        view.findViewById(R.id.widget_status).getBottom() <= info.getHeight());
+                assertEquals("2001:0db8:85a3:0000:0000:8a2e:0370:7334", ((TextView) view.findViewById(R.id.widget_ip)).getText().toString());
             }
         });
         // Rendering/resizing alone must not initiate any lookup.

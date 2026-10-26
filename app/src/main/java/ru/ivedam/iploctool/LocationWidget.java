@@ -34,7 +34,7 @@ public class LocationWidget extends AppWidgetProvider {
                 RemoteViews views;
                 if (Build.VERSION.SDK_INT >= 31) {
                     Map<SizeF, RemoteViews> sizes = new LinkedHashMap<>();
-                    sizes.put(new SizeF(110, 40), createViews(context, WidgetSize.COMPACT));
+                    sizes.put(new SizeF(110, 60), createViews(context, WidgetSize.COMPACT));
                     sizes.put(new SizeF(170, 130), createViews(context, WidgetSize.MEDIUM));
                     sizes.put(new SizeF(250, 180), createViews(context, WidgetSize.LARGE));
                     views = new RemoteViews(sizes);
