@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">IP Локация</string>
+    <string name="subtitle">Ваш адрес в интернете — одним нажатием.</string>
+    <string name="public_ip">ПУБЛИЧНЫЙ IP</string>
+    <string name="check">Проверить IP</string>
+    <string name="add_widget">Добавить виджет</string>
+    <string name="empty_ip">IP —</string>
+    <string name="empty_place">Местоположение —</string>
+    <string name="manual_only">Проверка только по кнопке</string>
+    <string name="privacy_note">Без GPS и фоновых проверок. По нажатию выполняется запрос к ipwho.is. Локация по IP приблизительная; VPN может изменить результат. Отображаются данные последней проверки.</string>
+</resources>

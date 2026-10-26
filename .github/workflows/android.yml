@@ -1,0 +1,100 @@
+name: Android APK
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      publish_release:
+        description: 'Publish an installable preview APK in Releases'
+        type: boolean
+        default: true
+permissions:
+  contents: read
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Install Android SDK platform
+        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Configure optional private signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [[ -n "$KEYSTORE_BASE64" ]]; then
+            printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release.keystore"
+            chmod 600 "$RUNNER_TEMP/release.keystore"
+            echo "IPLOC_KEYSTORE=$RUNNER_TEMP/release.keystore" >> "$GITHUB_ENV"
+            printf 'IPLOC_STORE_PASSWORD=%s\nIPLOC_KEY_ALIAS=%s\nIPLOC_KEY_PASSWORD=%s\n' "$STORE_PASSWORD" "$KEY_ALIAS" "$KEY_PASSWORD" >> "$GITHUB_ENV"
+          fi
+      - name: Test, lint and build optimized APK
+        run: gradle --no-daemon --stacktrace testDebugUnitTest lintRelease assembleRelease -PversionCode="$GITHUB_RUN_NUMBER" -PversionName="1.0.$GITHUB_RUN_NUMBER"
+      - name: Verify APK signature and size
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/release/app-release.apk dist/IpLocTool.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose dist/IpLocTool.apk
+          sha256sum dist/IpLocTool.apk > dist/SHA256SUMS
+          stat --printf='APK size: %s bytes\n' dist/IpLocTool.apk
+      - name: Upload APK and checksum
+        uses: actions/upload-artifact@v4
+        with:
+          name: IpLocTool-${{ github.run_number }}
+          path: dist/*
+          if-no-files-found: error
+      - name: Upload test and lint reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-${{ github.run_number }}
+          path: |
+            app/build/reports/tests/
+            app/build/reports/lint-results-release.*
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.publish_release) || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: IpLocTool-${{ github.run_number }}
+          path: dist
+      - name: Publish APK in Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          REF_NAME: ${{ github.ref_name }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            tag="$REF_NAME"
+          else
+            tag="build-$GITHUB_RUN_NUMBER"
+          fi
+          cat > notes.md <<'NOTES'
+          Android 6.0+. Download and install IpLocTool.apk.
+
+          Manual IP/location checks in the app and home screen widget; no scheduled requests or permanent background service.
+
+          Without signing secrets this is a preview signed with an ephemeral Android debug key; updating may require uninstalling the previous build. Configure private signing secrets for stable production updates. IP geolocation is approximate. Data provider: ipwho.is.
+          NOTES
+          gh release create "$tag" dist/IpLocTool.apk dist/SHA256SUMS --target "$COMMIT_SHA" --title "IP Локация $tag" --notes-file notes.md
