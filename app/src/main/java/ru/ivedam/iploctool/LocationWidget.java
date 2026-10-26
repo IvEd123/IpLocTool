@@ -38,7 +38,9 @@ public class LocationWidget extends AppWidgetProvider {
             views.setTextViewText(R.id.widget_place, state.getString("place", "Местоположение —"));
             views.setTextViewText(R.id.widget_status, status);
             views.setTextViewText(R.id.widget_check, busy ? "Проверяем…" : "Проверить IP");
-            views.setBoolean(R.id.widget_check, "setEnabled", !busy);
+            // Keep the PendingIntent usable if Android kills the process mid-check.
+            // The controller coalesces extra clicks while the process is alive.
+            views.setBoolean(R.id.widget_check, "setEnabled", true);
             PendingIntent check = PendingIntent.getBroadcast(context, 0,
                     new Intent(context, LocationWidget.class).setAction(CHECK),
                     PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);

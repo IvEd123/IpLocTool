@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -26,6 +26,9 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
@@ -51,7 +54,7 @@ jobs:
           mkdir -p dist
           cp app/build/outputs/apk/release/app-release.apk dist/IpLocTool.apk
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose dist/IpLocTool.apk
-          sha256sum dist/IpLocTool.apk > dist/SHA256SUMS
+          (cd dist && sha256sum IpLocTool.apk > SHA256SUMS)
           stat --printf='APK size: %s bytes\n' dist/IpLocTool.apk
       - name: Upload APK and checksum
         uses: actions/upload-artifact@v4
@@ -70,7 +73,7 @@ jobs:
   release:
     needs: build
     if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.publish_release) || (github.event_name == 'push' && github.ref == 'refs/heads/main')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
     steps:
