@@ -40,7 +40,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         check = findViewById(R.id.check);
         state = CheckController.state(this);
         check.setOnClickListener(v -> {
-            CheckController.check(this, null);
+            CheckService.start(this);
             render();
         });
         Button widget = findViewById(R.id.add_widget);

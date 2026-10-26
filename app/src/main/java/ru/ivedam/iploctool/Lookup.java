@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.SocketTimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashSet;
 import java.util.Locale;
@@ -22,15 +24,16 @@ final class Lookup {
 
     static Result fetch() throws Exception {
         HttpURLConnection connection = (HttpURLConnection) new URL("https://ipwho.is/?lang=ru").openConnection();
-        connection.setConnectTimeout(2500);
-        connection.setReadTimeout(3000);
+        connection.setConnectTimeout(8000);
+        connection.setReadTimeout(8000);
         connection.setUseCaches(false);
         connection.setInstanceFollowRedirects(false);
-        // Stay within BroadcastReceiver.goAsync's short execution window.
+        // A user-started foreground service owns the request, not a broadcast receiver.
+        AtomicBoolean expired = new AtomicBoolean();
         Timer deadline = new Timer("lookup-deadline", true);
         deadline.schedule(new TimerTask() {
-            @Override public void run() { connection.disconnect(); }
-        }, 6500);
+            @Override public void run() { expired.set(true); connection.disconnect(); }
+        }, 20000);
         try {
             int status = connection.getResponseCode();
             if (status == 429) throw new IOException("Лимит сервиса. Повторите позже.");
@@ -45,6 +48,9 @@ final class Lookup {
                 }
                 return parse(new String(output.toByteArray(), StandardCharsets.UTF_8));
             }
+        } catch (Exception error) {
+            if (expired.get()) throw new SocketTimeoutException("Lookup deadline exceeded");
+            throw error;
         } finally {
             deadline.cancel();
             connection.disconnect();

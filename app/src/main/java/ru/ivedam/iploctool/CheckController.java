@@ -18,6 +18,7 @@ final class CheckController {
             if (finished != null) finished.run();
             return;
         }
+        state(app).edit().putLong("revision", System.nanoTime()).commit();
         LocationWidget.renderAll(app);
         new Thread(() -> {
             try {
@@ -26,11 +27,8 @@ final class CheckController {
                         .putString("provider", result.provider).putLong("checked_at", System.currentTimeMillis())
                         .remove("error").commit();
             } catch (Exception error) {
-                String message = error instanceof java.net.SocketTimeoutException
-                        ? "Время ожидания истекло. Повторите проверку."
-                        : error instanceof java.io.IOException && error.getMessage() != null
-                        && error.getMessage().startsWith("Сервис") ? error.getMessage()
-                        : "Не удалось проверить. Проверьте интернет и повторите.";
+                String message = LookupError.message(error);
+                android.util.Log.w("IpLocTool", "Manual IP check failed", error);
                 state(app).edit().putString("error", message).commit();
             } finally {
                 running.set(false);

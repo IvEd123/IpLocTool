@@ -7,5 +7,9 @@
     <string name="empty_ip">IP —</string>
     <string name="empty_place">Местоположение —</string>
     <string name="manual_only">Проверка только по кнопке</string>
-    <string name="privacy_note">Без GPS и фоновых проверок. По нажатию выполняется запрос к ipwho.is. Локация по IP приблизительная; VPN может изменить результат. Отображаются данные последней проверки.</string>
+    <string name="privacy_note">Без GPS и автоматических проверок. Проверка выполняется только по кнопке; на время запроса появляется уведомление. По нажатию выполняется запрос к ipwho.is. Локация по IP приблизительная; VPN может изменить результат. Отображаются данные последней проверки.</string>
+    <string name="widget_compact_name">IP Локация · компактный 2×1</string>
+    <string name="widget_medium_name">IP Локация · средний 3×2</string>
+    <string name="widget_large_name">IP Локация · большой 4×3</string>
+    <string name="refresh_symbol">↻</string>
 </resources>

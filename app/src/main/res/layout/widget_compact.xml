@@ -1,0 +1,8 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="horizontal" android:gravity="center_vertical" android:padding="6dp" android:background="@drawable/card">
+    <LinearLayout android:id="@+id/widget_info" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center_vertical">
+        <TextView android:id="@+id/widget_ip" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/empty_ip" android:textColor="#83E8C3" android:textSize="13sp" android:fontFamily="monospace" android:includeFontPadding="false" android:maxLines="1" android:ellipsize="end"/>
+        <TextView android:id="@+id/widget_place" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/empty_place" android:textColor="#FFFFFF" android:textSize="10sp" android:includeFontPadding="false" android:maxLines="1" android:ellipsize="end"/>
+        <TextView android:id="@+id/widget_status" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/manual_only" android:textColor="#A5BACB" android:textSize="9sp" android:includeFontPadding="false" android:maxLines="1" android:ellipsize="end"/>
+    </LinearLayout>
+    <Button android:id="@+id/widget_check" android:layout_width="48dp" android:layout_height="48dp" android:minWidth="0dp" android:minHeight="0dp" android:padding="0dp" android:text="@string/refresh_symbol" android:contentDescription="@string/check" android:textSize="24sp" android:textAllCaps="false" android:textColor="#101A24" android:backgroundTint="#83E8C3"/>
+</LinearLayout>
